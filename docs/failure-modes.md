@@ -16,7 +16,7 @@ never resets a store that it cannot read.
 | S1 | A value has the wrong type, for example a number for an enum field or `"yes"` for a boolean | `set` throws `bad-value` and names the field and the type it wants; the store does not change | tests/values.test.ts |
 | S2 | An enum value is not one of the options (`size.top: "XXXL"`) | `bad-value` lists the options | tests/values.test.ts |
 | S3 | A field name is unknown or misspelled (`shoping.size.top`) | `unknown-field`; no new key is stored | tests/values.test.ts |
-| S4 | A string holds a newline or another control character, which could start a new line of instructions in an agent prompt, or an invisible character (a bidi override, a zero-width space) that makes it read differently | `bad-value` | tests/values.test.ts |
+| S4 | A string holds a newline or another control character, which could start a new line of instructions in an agent prompt, or an invisible character (any format character such as a bidi mark or a zero-width space, a soft hyphen, or a Unicode tag character) that makes it read differently | `bad-value` | tests/values.test.ts |
 | S5 | A string or list is huge (a 1 MB string, 10 000 list items) | `bad-value` above the field limit (120 characters, 50 items of 100 characters) | tests/values.test.ts |
 | S6 | Money has a fraction of a minor unit (`19.999 USD`), a negative amount, a lowercase or unknown currency | `bad-value`; money is a whole number of minor units and an ISO 4217 code | tests/values.test.ts |
 | S7 | Text input is ambiguous (`"200"` for money with no currency, `"maybe"` for a boolean) | `parseValue` throws `bad-value`; it never picks a default currency or a default answer | tests/values.test.ts |
