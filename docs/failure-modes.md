@@ -54,6 +54,7 @@ never resets a store that it cannot read.
 | O3 | `toRules` makes a rule that foxgate refuses or reads in another way | The rules go into a real foxgate and it denies a purchase over the cap and an action on a blocked site | tests/outputs.test.ts |
 | O4 | A monthly cap uses another currency than the purchase | foxgate denies it (`currency`); foxprefs does not convert | tests/outputs.test.ts |
 | O5 | `toHcp` carries a private value | Private fields appear with `read: "Never"` and no value | tests/outputs.test.ts |
+| O6 | `toRules` puts a private field (a private monthly budget, a private never-share list) in the rules | Private fields are left out of the rules too | tests/outputs.test.ts |
 | R1 | The SCENT resolver returns a private field, also with `derive: true` | It is left out | tests/scent.test.ts |
 | R2 | `derive: true` returns the exact budget | It returns the band (`low`, `mid` or `high`) | tests/scent.test.ts |
 | R3 | A field outside the `prefs.` namespace, or an unknown one | Left out, never an error that tells which fields exist | tests/scent.test.ts |
