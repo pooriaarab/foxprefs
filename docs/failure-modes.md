@@ -57,7 +57,7 @@ never resets a store that it cannot read.
 | R1 | The SCENT resolver returns a private field, also with `derive: true` | It is left out | tests/scent.test.ts |
 | R2 | `derive: true` returns the exact budget | It returns the band (`low`, `mid` or `high`) | tests/scent.test.ts |
 | R3 | A field outside the `prefs.` namespace, or an unknown one | Left out, never an error that tells which fields exist | tests/scent.test.ts |
-| R4 | An extension other than `foxscope@pooriaarab` sends `scent.list` or `scent.read` | No reply, the same as when foxprefs is not installed | tests/scent.test.ts, E2E |
+| R4 | An extension other than `foxscope@pooriaarab` sends `scent.list` or `scent.read` | No data. The call fails with the error Firefox gives when no extension has the id, so the sender cannot tell that foxprefs is installed | tests/scent.test.ts, E2E |
 | R5 | foxscope sends a bad message (no type, fields not a list, 10 000 fields) | No data; a `bad-request` error | tests/scent.test.ts |
 | R6 | A web page sends a message | Firefox does not deliver page messages to `onMessageExternal`; foxprefs has no `externally_connectable` | E2E (manifest) |
 | R7 | foxscope honors an expired grant | Out of scope here: foxprefs keeps no grants. foxscope owns consent, expiry and the trail | — |
@@ -83,6 +83,6 @@ never resets a store that it cannot read.
 | E1 | A value does not persist after a reload | Values live in `storage.local` | E2E |
 | E2 | The settings page saves a bad value | The field shows the error message; the stored value does not change | E2E |
 | E3 | The copy-for-agent text has a private value | It is `toPrompt()`, so only public values | E2E |
-| E4 | A content script of this extension calls the settings messages | The background answers its own extension pages only | E2E |
+| E4 | A content script of this extension calls the settings messages | The background answers its own extension pages only | — (code review: `fromOwnPage` in extension/background.js; the E2E has no way to run code as fill.js) |
 | E5 | "Fill my size" runs on a page without a click | It runs only from the popup button, with `activeTab`; no content script is declared in the release build | E2E |
 | E6 | A size control has no option that matches | Nothing is changed and the popup says so | E2E |
