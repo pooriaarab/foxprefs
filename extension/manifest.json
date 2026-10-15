@@ -13,7 +13,7 @@
       }
     }
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "activeTab", "scripting"],
   "background": {
     "scripts": ["background.js"]
   },
