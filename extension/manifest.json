@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "foxprefs",
-  "version": "0.0.0",
+  "name": "foxprefs — your preferences for AI agents",
+  "version": "0.1.0",
   "description": "Typed preferences that any AI agent can read on your terms, kept in your own browser.",
   "icons": { "48": "icons/icon-48.png", "96": "icons/icon-96.png", "128": "icons/icon-128.png" },
   "browser_specific_settings": {
