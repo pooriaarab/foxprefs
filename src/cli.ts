@@ -3,6 +3,7 @@
 import { readFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { FoxprefsError } from "./errors.js";
+import { serveMcp } from "./mcp.js";
 import { openPrefs } from "./node.js";
 import { formatValue } from "./values.js";
 
@@ -17,6 +18,7 @@ export const USAGE = `Usage: foxprefs <command>
   rules                      Print the hard limits as foxgate rules (JSON)
   export [--hcp]             Print the foxprefs/v1 record, or the HCP-style export
   import <file>              Replace every value with a foxprefs/v1 file
+  mcp                        Serve the read-only MCP server on stdio
 
 The store is $FOXPREFS_HOME/prefs.json (default ~/.foxprefs/prefs.json).
 `;
@@ -106,6 +108,10 @@ export async function runCli(argv: string[], io: CliIo): Promise<number> {
         io.out(`Imported ${args[0]}.\n`);
         return 0;
       }
+      case "mcp":
+        need(args, 0);
+        await serveMcp(prefs);
+        return 0;
       default:
         throw new UsageError(`unknown command ${JSON.stringify(command)}`);
     }
