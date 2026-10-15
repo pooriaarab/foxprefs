@@ -1,20 +1,16 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>foxprefs</title>
-    <link rel="stylesheet" href="popup.css" />
-  </head>
-  <body>
-    <header>
-      <img src="icons/icon-48.png" alt="" width="22" height="22" />
-      <h1>foxprefs</h1>
-    </header>
-    <p class="hint">Typed preferences that any AI agent can read on your terms, kept in your own browser.</p>
-    <!-- Show foxprefs working here. The E2E test reads #value. -->
-    <section class="card">
-      <p>Status: <output id="value"></output></p>
-    </section>
-    <script src="popup.js"></script>
-  </body>
+<head><meta charset="utf-8"><title>foxprefs</title><link rel="stylesheet" href="style.css"></head>
+<body class="popup">
+  <header><img class="mark" src="icons/icon-48.png" alt="" width="22" height="22"><h1>foxprefs</h1><a class="icon-button" href="settings.html" target="_blank" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg></a></header>
+  <p class="note">Your preferences, kept in this browser.</p>
+  <dl id="quick" class="card"></dl>
+  <div class="bar">
+    <button id="copy" class="primary">Copy for an agent</button>
+    <button id="fill">Fill my size</button>
+  </div>
+  <p id="status" class="status" role="status"></p>
+  <pre id="agent-text" hidden></pre>
+  <script src="popup.js"></script>
+</body>
 </html>

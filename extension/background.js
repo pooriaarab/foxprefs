@@ -22,6 +22,14 @@ export const handlers = {
   },
   "prefs:prompt": () => prefs.toPrompt(),
   "prefs:export": () => prefs.export(),
+  // The popup sends the active tab after a click, which grants activeTab for it.
+  "prefs:fill": async ({ tabId }) => {
+    const v = await prefs.get(["shopping.size.top", "shopping.size.bottom", "shopping.size.shoe"]);
+    const sizes = { top: v["shopping.size.top"], bottom: v["shopping.size.bottom"], shoe: v["shopping.size.shoe"] };
+    if (!Object.values(sizes).some(Boolean)) return { filled: [], missed: [], noSizes: true };
+    await browser.scripting.executeScript({ target: { tabId }, files: ["fill.js"] });
+    return browser.tabs.sendMessage(tabId, { type: "foxprefs:fill", sizes });
+  },
   "prefs:import": async ({ text }) => {
     if (typeof text !== "string") throw new FoxprefsError("bad-import", "The import must be the text of a file.");
     await prefs.import(text);
