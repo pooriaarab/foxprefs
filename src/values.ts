@@ -12,8 +12,12 @@ export const MAX_ITEMS = 50;
 // the soft hyphen, the word joiner) and the whole tag block U+E0000-E007F.
 // A newline could start a new instruction line in an agent prompt, and an
 // invisible character makes a value read differently than it is. Tag
-// characters are invisible, yet a model reads them as ASCII text.
-const CONTROL = /[\p{Cc}\p{Cf}\u2028\u2029\u{e0000}-\u{e007f}]/u;
+// characters are invisible, yet a model reads them as ASCII text. Variation
+// selectors (U+FE00-FE0F, U+E0100-E01EF) are invisible too and can hide a
+// byte of data each. The Hangul fillers U+3164 and U+FFA0, the blank
+// braille cell U+2800, the combining grapheme joiner U+034F and the
+// Mongolian selectors U+180B-180F look like nothing or like a space.
+const CONTROL = /[\p{Cc}\p{Cf}\p{Variation_Selector}\u2028\u2029\u{e0000}-\u{e007f}\u3164\uffa0\u2800\u180b-\u180f]|\u034f/u;
 
 const bad = (field: PrefField, why: string): never => {
   throw new FoxprefsError("bad-value", `${field.name}: ${why}.`);
