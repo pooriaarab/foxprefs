@@ -24,6 +24,9 @@
       "default": "./dist/node.js"
     }
   },
+  "bin": {
+    "foxprefs": "dist/bin.js"
+  },
   "files": [
     "dist"
   ],
