@@ -1,6 +1,6 @@
 // foxprefs/node: the file store that the CLI and the MCP server use.
 // The file is $FOXPREFS_HOME/prefs.json, default ~/.foxprefs/prefs.json.
-import { chmod, mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { FoxprefsError } from "./errors.js";
@@ -18,8 +18,9 @@ export const prefsPath = (env: NodeJS.ProcessEnv = process.env) => join(prefsHom
 
 /**
  * A store in one JSON file. A write goes to a temp file first and then
- * replaces the old file, so a crash never leaves half a file. The directory
- * is 0700 and the file 0600. A file that is not JSON fails loudly; foxprefs
+ * replaces the old file, so a crash never leaves half a file. A directory
+ * that foxprefs makes is 0700; it never changes the mode of one that exists.
+ * The file is 0600. A file that is not JSON fails loudly; foxprefs
  * never writes over it.
  */
 export function fileStore(path: string): PrefStore {
@@ -40,11 +41,16 @@ export function fileStore(path: string): PrefStore {
       }
     },
     async write(state) {
-      await mkdir(dirname(path), { recursive: true, mode: 0o700 });
-      await chmod(dirname(path), 0o700);
+      // mkdir gives the first directory it made, or undefined when all exist.
+      if (await mkdir(dirname(path), { recursive: true, mode: 0o700 })) await chmod(dirname(path), 0o700);
       const temp = `${path}.${process.pid}.${Date.now()}.tmp`;
-      await writeFile(temp, `${JSON.stringify(state, null, 2)}\n`, { mode: 0o600 });
-      await rename(temp, path);
+      try {
+        await writeFile(temp, `${JSON.stringify(state, null, 2)}\n`, { mode: 0o600 });
+        await rename(temp, path);
+      } catch (error) {
+        await rm(temp, { force: true });
+        throw error;
+      }
     },
   };
 }

@@ -102,7 +102,7 @@ const HCP_READ: Record<Sensitivity, HcpPermission> = { public: "Allow", ask: "As
 export interface HcpExport {
   format: "foxprefs/hcp-v0";
   about: string;
-  /** Values by group and path, for example `{ shopping: { size: { top: "M" } } }`. No private values. */
+  /** Values by group and path, for example `{ shopping: { size: { top: "M" } } }`. Public values only. */
   context: Record<string, unknown>;
   /** Per-field permissions, the shape of the HCP demo's GrantOfAuthority. Agents never write. */
   grantOfAuthority: { permissions: Record<string, { read: HcpPermission; write: "Never" }>; metadata: { created_at: string; updated_at: string } };
@@ -123,15 +123,17 @@ export function toHcp(schema: Schema, state: PrefsState, now: number): HcpExport
     const s = effective(state, f);
     permissions[f.name] = { read: HCP_READ[s], write: "Never" };
     if (!(f.name in state.values)) continue;
-    if (s === "private") {
-      text.push(`${f.label}: kept private. Never shared.`);
+    // An export file can go anywhere, so it holds public values only. An
+    // "ask" value needs consent for each use, which a file cannot carry.
+    if (s !== "public") {
+      text.push(s === "private" ? `${f.label}: kept private. Never shared.` : `${f.label}: set, but not in this export. Ask the user for it.`);
       continue;
     }
     const path = f.name.split(".");
     let at = context;
     for (const key of path.slice(0, -1)) at = (at[key] ??= {}) as Record<string, unknown>;
     at[path.at(-1)!] = structuredClone(state.values[f.name]);
-    text.push(`${f.label}: ${formatValue(f, state.values[f.name])}.${s === "ask" ? " Ask the user before you use this." : ""}`);
+    text.push(`${f.label}: ${formatValue(f, state.values[f.name])}.`);
   }
   return {
     format: "foxprefs/hcp-v0",

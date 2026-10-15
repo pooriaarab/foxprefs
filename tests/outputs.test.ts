@@ -107,14 +107,15 @@ describe("toRules", () => {
 });
 
 describe("toHcp", () => {
-  it("O5 holds no private value and marks the permissions", async () => {
+  it("O5 holds no private or ask value and marks the permissions", async () => {
     const hcp = await (await filled()).toHcp();
-    expect(JSON.stringify(hcp)).not.toContain("Aeroplan");
-    expect(hcp.context).toMatchObject({ shopping: { size: { top: "M" } }, food: { diet: "vegetarian", allergies: ["peanuts"] } });
+    expect(JSON.stringify(hcp)).not.toMatch(/Aeroplan|peanuts|60000/);
+    expect(hcp.context).toMatchObject({ shopping: { size: { top: "M" } }, food: { diet: "vegetarian" } });
+    expect(hcp.context).not.toHaveProperty("budget");
     expect(hcp.grantOfAuthority.permissions["travel.loyalty"]).toEqual({ read: "Never", write: "Never" });
     expect(hcp.grantOfAuthority.permissions["food.allergies"]).toEqual({ read: "Ask", write: "Never" });
     expect(hcp.grantOfAuthority.permissions["shopping.size.top"]).toEqual({ read: "Allow", write: "Never" });
     expect(hcp.text).toContain("Loyalty numbers: kept private. Never shared.");
-    expect(hcp.text).toContain("Allergies: peanuts. Ask the user before you use this.");
+    expect(hcp.text).toContain("Allergies: set, but not in this export. Ask the user for it.");
   });
 });
