@@ -1,8 +1,9 @@
 // Builds extension/ into dist-ext/: esbuild bundles each script, and the
 // other files are copied. It stops when the manifest version is not the
 // package.json version, so AMO signs the version that npm publishes.
-// --e2e builds dist-e2e/: the same plus e2e/extension/ (never in dist-ext/,
-// which release.yml signs; check:amo stops if an E2E piece reaches it).
+// --e2e builds dist-e2e/: the same, plus host permissions for the E2E test
+// site, so the test can run "Fill my size" without a toolbar click (which is
+// what grants activeTab). dist-ext/, which release.yml signs, never has them.
 import { cpSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { build } from "esbuild";
 
@@ -15,7 +16,7 @@ if (manifest.version !== pkg.version) {
 
 const e2e = process.argv.includes("--e2e");
 const out = e2e ? "dist-e2e" : "dist-ext";
-const dirs = e2e ? ["extension", "e2e/extension"] : ["extension"];
+const dirs = ["extension"];
 rmSync(out, { recursive: true, force: true });
 for (const dir of dirs) {
   const files = readdirSync(dir);
@@ -31,7 +32,7 @@ for (const dir of dirs) {
   for (const file of files.filter((f) => !f.endsWith(".js") && f !== "amo-metadata.json")) cpSync(`${dir}/${file}`, `${out}/${file}`, { recursive: true });
 }
 if (e2e) {
-  const withScript = { ...manifest, content_scripts: [{ matches: ["http://127.0.0.1/*"], js: ["e2e-content.js"] }] };
-  writeFileSync(`${out}/manifest.json`, `${JSON.stringify(withScript, null, 2)}\n`);
+  const withHosts = { ...manifest, host_permissions: ["http://127.0.0.1/*", "https://*.trycloudflare.com/*"] };
+  writeFileSync(`${out}/manifest.json`, `${JSON.stringify(withHosts, null, 2)}\n`);
 }
 console.log(`Built ${out}/ (version ${pkg.version}).`);
