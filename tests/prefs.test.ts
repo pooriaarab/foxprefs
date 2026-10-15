@@ -1,4 +1,4 @@
-// P1-P7, X1-X6 and S10 in docs/failure-modes.md.
+// P1-P8, X1-X6 and S10 in docs/failure-modes.md.
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SCHEMA, FoxprefsError, createPrefs, defineSchema, memoryStore, prefsResolver, storageAreaStore, type PrefStore, type PrefsState } from "../src/index.js";
 
@@ -58,8 +58,24 @@ describe("createPrefs", () => {
     const served = [await prefs.toPrompt(), await prefs.toRules(), await prefs.toHcp(), await resolver.list(), await resolver.read(["prefs.pets.kind", "prefs.food.diet"], { derive: false })];
     expect(served.map((x) => JSON.stringify(x)).filter((x) => /pets|tabby/.test(x))).toEqual([]);
     await prefs.set("food.diet", "halal");
-    expect(await store.read()).toEqual({ ...stored, values: { "food.diet": "halal", "pets.kind": "tabby" }, updatedAt: "2026-10-15T00:00:00.000Z" });
+    expect(await store.read()).toEqual({ ...stored, values: { "food.diet": "halal", "pets.kind": "tabby" }, sensitivity: {}, updatedAt: "2026-10-15T00:00:00.000Z" });
     expect((await prefs.export()).values["pets.kind"]).toBe("tabby");
+  });
+
+  it("P8 a sensitivity for an unknown field never takes effect when the schema adds it", async () => {
+    const store = memoryStore();
+    await createPrefs({ store }).import({ format: "foxprefs/v1", values: { "payment.card": "4111 1111 1111 1111" }, sensitivity: { "payment.card": "public" } });
+    const card = { name: "payment.card", label: "Card", type: "string", sensitivity: "private" } as const;
+    const later = createPrefs({ store, schema: defineSchema([...DEFAULT_SCHEMA, card]) });
+    expect((await later.all()).find((f) => f.name === "payment.card")?.sensitivity).toBe("private");
+    expect(await later.toPrompt()).not.toMatch(/4111/);
+    expect(await prefsResolver(later).read(["prefs.payment.card"], { derive: false })).toEqual({});
+    const loaded = memoryStore({ format: "foxprefs/v1", values: {}, sensitivity: { "payment.card": "public" }, updatedAt: "2026-10-01T00:00:00.000Z" });
+    const prefs = createPrefs({ store: loaded });
+    expect(await prefs.unknownFields()).toEqual([]);
+    expect((await prefs.export()).sensitivity).toEqual({});
+    await prefs.set("food.diet", "vegan");
+    expect(((await loaded.read()) as PrefsState).sensitivity).toEqual({});
   });
 
   it("P2 two sets at the same time both land", async () => {
@@ -153,13 +169,14 @@ describe("export and import", () => {
 
   it("X4 X6 an unknown field in an import is kept as data and never served", async () => {
     const { prefs, store } = fresh();
-    await prefs.import('{"format":"foxprefs/v1","values":{"pets.kind":"cat","__proto__":{"x":1},"food.diet":"vegan"},"sensitivity":{"constructor":"public"}}');
+    await prefs.import('{"format":"foxprefs/v1","values":{"pets.kind":"cat","__proto__":{"x":1},"constructor":"x","food.diet":"vegan"},"sensitivity":{"constructor":"public"}}');
     expect(({} as Record<string, unknown>).x).toBeUndefined();
     expect(await prefs.unknownFields()).toEqual(["pets.kind", "__proto__", "constructor"]);
     expect(await prefs.get(["food.diet"])).toEqual({ "food.diet": "vegan" });
     expect(JSON.stringify(await prefs.all())).not.toMatch(/pets|__proto__|constructor/);
     const saved = (await store.read()) as PrefsState;
-    expect(Object.keys(saved.values).toSorted()).toEqual(["__proto__", "food.diet", "pets.kind"]);
+    expect(Object.keys(saved.values).toSorted()).toEqual(["__proto__", "constructor", "food.diet", "pets.kind"]);
+    expect(saved.sensitivity).toEqual({});
     expect(Object.getPrototypeOf(saved.values)).toBe(Object.prototype);
     const b = fresh().prefs;
     await b.import(JSON.stringify(await prefs.export()));
