@@ -86,3 +86,4 @@ never resets a store that it cannot read.
 | E4 | A content script of this extension calls the settings messages | The background answers its own extension pages only | — (code review: `fromOwnPage` in extension/background.js; the E2E has no way to run code as fill.js) |
 | E5 | "Fill my size" runs on a page without a click | It runs only from the popup button, with `activeTab`; no content script is declared in the release build | E2E |
 | E6 | A size control has no option that matches | Nothing is changed and the popup says so | E2E |
+| E7 | "Fill my size" writes a private size into a page, where the page's script can read it | Private sizes are never filled. An "ask" size is filled, because the click is the user's consent | E2E |

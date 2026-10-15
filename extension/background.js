@@ -23,9 +23,12 @@ export const handlers = {
   "prefs:prompt": () => prefs.toPrompt(),
   "prefs:export": () => prefs.export(),
   // The popup sends the active tab after a click, which grants activeTab for it.
+  // The click is the user's consent for "ask" sizes. A private size never goes
+  // into a page, because the page's own script can read the form.
   "prefs:fill": async ({ tabId }) => {
-    const v = await prefs.get(["shopping.size.top", "shopping.size.bottom", "shopping.size.shoe"]);
-    const sizes = { top: v["shopping.size.top"], bottom: v["shopping.size.bottom"], shoe: v["shopping.size.shoe"] };
+    const fields = new Map((await prefs.all()).map((f) => [f.name, f]));
+    const size = (name) => (fields.get(name)?.sensitivity === "private" ? undefined : fields.get(name)?.value);
+    const sizes = { top: size("shopping.size.top"), bottom: size("shopping.size.bottom"), shoe: size("shopping.size.shoe") };
     if (!Object.values(sizes).some(Boolean)) return { filled: [], missed: [], noSizes: true };
     await browser.scripting.executeScript({ target: { tabId }, files: ["fill.js"] });
     return browser.tabs.sendMessage(tabId, { type: "foxprefs:fill", sizes });
