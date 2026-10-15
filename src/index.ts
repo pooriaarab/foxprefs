@@ -7,3 +7,4 @@ export { FORMAT, MAX_IMPORT_BYTES, checkState, createPrefs } from "./prefs.js";
 export type { FieldInfo, Prefs, PrefsOptions } from "./prefs.js";
 export { memoryStore, storageAreaStore } from "./store.js";
 export type { PrefStore, PrefsState, StorageAreaLike } from "./store.js";
+export type { GateRule, HcpExport, PrefsRules } from "./outputs.js";
