@@ -171,7 +171,9 @@ try {
   check("the error is the one for an extension that is not installed", [absent.error, absent.error], intruder.map((r) => r.error));
 
   // 6. Fill my size on a shop page, and nothing on a page with no match (E5, E6, E7).
-  // The shoe size was made private in step 4, so it must not be filled.
+  // The shoe size was made private in step 4, so it must not be filled. A hidden
+  // and a zero-size select come first and must be skipped; a second visible
+  // size select must stay as it is (one select per kind, E8).
   const fill = async (path) => {
     const shop = await fox.open(`${site.url}/${path}`);
     const tabId = await settings.evaluate(async (p) => (await browser.tabs.query({})).find((t) => t.url?.endsWith(p))?.id, path);
@@ -180,7 +182,7 @@ try {
     return { result, values };
   };
   const shop = await fill("shop.html");
-  check("fill my size sets the top size only: the private shoe size and the color stay", { size: "m", shoe: "", color: "" }, shop.values);
+  check("fill my size sets the top size only: the private shoe size and the color stay", { "size-hidden": "", "size-zero": "", size: "m", shoe: "", "size-2": "", color: "" }, shop.values);
   check("fill my size reports what it set", { ok: true, value: { filled: [{ kind: "top", value: "Medium" }], missed: [] } }, shop.result);
   const xs = await fill("shop-xs.html");
   check("no matching option: nothing changes", { size: "" }, xs.values);
