@@ -106,7 +106,7 @@ Checked on 2026-10-15 against the linked pages.
 | CLI (`foxprefs`) | Implemented | vitest, run in process |
 | MCP server (`foxprefs mcp`) | Implemented | vitest with the SDK in-memory client |
 | foxgate rules (`toRules`) | Implemented | A real foxgate 0.1.6 enforces them in a test |
-| Firefox extension | Implemented | E2E on Ichabod (remote Firefox 157), 26 checks |
+| Firefox extension | Implemented | E2E on Ichabod (remote Firefox 157), 28 checks |
 | SCENT with the real foxscope | Not tested | foxscope is not released yet; a stand-in with its id is used |
 | HCP export (`toHcp`) | Implemented, shape `foxprefs/hcp-v0` | vitest; there is no official schema to check against |
 
@@ -132,6 +132,7 @@ The prefs object:
 | `set(field, value)` / `setText(field, text)` | Check and store a value. `setText` reads `200 USD`, `yes`, `a, b`. |
 | `unset(field)`, `setSensitivity(field, level)` | Remove a value, change who can read a field. |
 | `all()` | Every field with its label, type, sensitivity and value. |
+| `unknownFields()` | Names in the store that this version does not know, for example from a newer foxprefs. They stay in the store and in exports. No agent sees them. |
 | `export()` / `import(json)` | The whole record in the `foxprefs/v1` format. An import is checked whole first; a bad one changes nothing. |
 | `toPrompt(fields?)` | Plain text for a system prompt. Public fields only. |
 | `toRules()` | `{ maxPerPurchase, payGrant, userRules, neverShare }` in foxgate formats. |
