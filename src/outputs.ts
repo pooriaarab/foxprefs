@@ -73,9 +73,13 @@ export interface PrefsRules {
   neverShare: string[];
 }
 
-/** The user's hard limits in foxgate formats. Rules apply whatever their sensitivity: they bind the agent. */
-export function toRules(state: PrefsState, now: number): PrefsRules {
-  const v = state.values;
+/**
+ * The user's hard limits in foxgate formats. A private field is left out,
+ * also here: the rules go to the host and can reach logs or an agent.
+ */
+export function toRules(schema: Schema, state: PrefsState, now: number): PrefsRules {
+  const v: Record<string, unknown> = {};
+  for (const f of schema) if (f.name in state.values && effective(state, f) !== "private") v[f.name] = state.values[f.name];
   const date = new Date(now);
   const monthly = v["budget.monthly"] as Money | undefined;
   const userRules: GateRule[] = [];

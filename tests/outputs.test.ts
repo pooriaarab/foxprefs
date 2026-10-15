@@ -90,6 +90,17 @@ describe("toRules", () => {
     expect((await send("bank.example")).decision).toBe("ask");
   });
 
+  it("O6 leaves out private fields", async () => {
+    const prefs = await filled();
+    await prefs.setSensitivity("budget.monthly", "private");
+    await prefs.setSensitivity("rules.neverShare", "private");
+    const rules = await prefs.toRules();
+    expect(rules.payGrant).toBeNull();
+    expect(rules.neverShare).toEqual([]);
+    expect(rules.maxPerPurchase).toEqual({ value: 20000, currency: "USD" });
+    expect(JSON.stringify(rules)).not.toMatch(/phone number|60000/);
+  });
+
   it("is empty when there are no limits", async () => {
     expect(await createPrefs({ store: memoryStore() }).toRules()).toMatchObject({ maxPerPurchase: null, payGrant: null, userRules: [], neverShare: [] });
   });

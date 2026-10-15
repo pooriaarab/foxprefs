@@ -185,7 +185,7 @@ export function createPrefs(options: PrefsOptions): Prefs {
       return serial(() => store.write({ ...next, updatedAt: new Date(now()).toISOString() }));
     },
     toPrompt: (fields) => serial(async () => toPrompt(schema, await load(), fields)),
-    toRules: () => serial(async () => toRules(await load(), now())),
+    toRules: () => serial(async () => toRules(schema, await load(), now())),
     toHcp: () => serial(async () => toHcp(schema, await load(), now())),
   };
   return Object.freeze(prefs);
