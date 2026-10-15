@@ -2,3 +2,5 @@
 # esbuild needs its script to check its platform binary.
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - create-foxkit@0.1.8
