@@ -1,0 +1,29 @@
+{
+  "default_locale": "en-US",
+  "slug": "foxprefs",
+  "name": {
+    "en-US": "foxprefs — your preferences for AI agents"
+  },
+  "summary": {
+    "en-US": "Keep your sizes, diet, budget, travel and hard rules in one place in your browser. Copy them for any AI agent, and choose for each one: share it, ask first, or keep it private."
+  },
+  "description": {
+    "en-US": "foxprefs keeps typed preferences that any AI agent can read on your terms. You type \"size M, vegetarian, no red-eye flights, never over 200 USD\" once, instead of in every chat.\n\n**Who it is for:** people who use AI agents for shopping, travel or writing, and developers who build those agents.\n\n**What it does**\n\n- The settings page has fields for you, shopping, food, travel, budget, how agents answer you, accessibility and hard rules. Each value is checked: a size that does not exist or an amount with no currency is refused, with a message under the field.\n- Each field has a level. Public: in the text you copy for an agent. Ask: only after you approve it in foxscope. Private: never leaves this browser.\n- \"Copy for an agent\" copies your public preferences and hard rules as short text to paste into an agent's instructions.\n- \"Fill my size\" in the toolbar popup sets the size menus on the page you are on, only when you click it.\n- Export and import move your preferences as a JSON file.\n\n**What leaves your computer:** nothing. foxprefs has no server and no analytics. It answers one other add-on, foxscope (foxscope@pooriaarab), which runs in this browser and asks you before it shares an \"ask\" field. Every other add-on gets no answer.\n\n**Permissions**\n\n- Storage: keep your preferences in this browser.\n- Active tab and scripting: \"Fill my size\" sets the size menus on the current tab after you click the button. foxprefs does not read pages at any other time.\n\nThe source code is MIT licensed."
+  },
+  "categories": {
+    "firefox": [
+      "shopping",
+      "privacy-security"
+    ]
+  },
+  "homepage": {
+    "en-US": "https://github.com/pooriaarab/foxprefs"
+  },
+  "support_url": {
+    "en-US": "https://github.com/pooriaarab/foxprefs/issues"
+  },
+  "version": {
+    "license": "MIT",
+    "approval_notes": "The uploaded source.zip is the git tree of this release. To build: install Node 24 and pnpm 11 (corepack enable), run `pnpm install --frozen-lockfile`, then `pnpm build:ext`. The output is dist-ext/. esbuild bundles extension/*.js with src/; the other files are copied unmodified. To try it: open the add-on preferences, set a top size and a diet, then press \"Copy for an agent\". To try \"Fill my size\", open a shop page with a size menu and press the button in the toolbar popup. onMessageExternal answers only the sender foxscope@pooriaarab. No account is needed."
+  }
+}
