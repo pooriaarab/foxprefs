@@ -132,9 +132,18 @@ try {
   check("a time zone that does not exist is refused", "Time zone was not saved.", await enter("identity.timeZone", "Mars/Base"));
 
   // 3. Reload: the values persist and the bad ones were never stored (E1).
+  // A field from a newer foxprefs is put in the store first: it must not lock
+  // the store, and it shows as kept (P7).
+  const kept = () => settings.evaluate(async () => (await browser.storage.local.get("foxprefs")).foxprefs.values["pets.kind"]);
+  await settings.evaluate(async () => {
+    const { foxprefs } = await browser.storage.local.get("foxprefs");
+    foxprefs.values["pets.kind"] = "tabby";
+    await browser.storage.local.set({ foxprefs });
+  });
   await settings.close();
   settings = await fox.openExtensionPage("settings.html");
   await poll(settings, () => Boolean(document.querySelector('[data-field="shopping.size.top"]')));
+  check("a field the schema does not know shows as kept", ["pets.kind: unknown field (kept)"], await settings.$$eval("[data-unknown]", (els) => els.map((el) => `${el.dataset.unknown}: ${el.querySelector(".kept").textContent}`)));
   const shown = await settings.evaluate(() => Object.fromEntries([...document.querySelectorAll("[data-field]")].map((el) => [el.dataset.field, el.value]).filter(([, v]) => v)));
   check("values persist after a reload", { "shopping.size.top": "M", "shopping.size.shoe": "US 9", "food.diet": "vegetarian", "food.allergies": "peanuts", "travel.loyalty": "Aeroplan 123456789", "budget.perPurchase": "80.00 USD", "rules.maxPurchase": "200.00 USD" }, shown);
 
@@ -147,20 +156,21 @@ try {
   let text = await copy();
   record.agentText = text;
   check("agent text has the public prefs", [true, true, true, true], ["- Top size: M", "- Shoe size: US 9", "- Diet: vegetarian", "- Never spend more than 200.00 USD on one purchase."].map((s) => text.includes(s)));
-  check("agent text has no ask or private value", [false, false, false], ["peanuts", "Aeroplan", "80.00"].map((s) => text.includes(s)));
+  check("agent text has no ask, private or unknown value", [false, false, false, false, false], ["peanuts", "Aeroplan", "80.00", "pets", "tabby"].map((s) => text.includes(s)));
   await settings.select('[data-sensitivity="shopping.size.shoe"]', "private");
   await sleep(300);
   check("the level badge changes", "private", await settings.$eval('[data-sensitivity="shopping.size.shoe"]', (el) => el.dataset.level));
   text = await copy();
   check("a field made private leaves the agent text", false, text.includes("US 9"));
+  check("the unknown field stays in the store after a save", "tabby", await kept());
 
   // 5. SCENT over onMessageExternal: foxscope gets data, any other extension nothing (R1, R2, R4).
   const page = await fox.open(`${site.url}/scent.html`);
   await poll(page, () => document.documentElement.dataset.foxscope && document.documentElement.dataset.intruder);
-  const fields = ["prefs.shopping.size.top", "prefs.shopping.size.shoe", "prefs.food.allergies", "prefs.travel.loyalty", "prefs.budget.perPurchase"];
+  const fields = ["prefs.pets.kind", "prefs.shopping.size.top", "prefs.shopping.size.shoe", "prefs.food.allergies", "prefs.travel.loyalty", "prefs.budget.perPurchase"];
   const list = await scent(page, "foxscope", { type: "scent.list" });
-  check("foxscope lists the fields", [true, 28, false], [list.sent, list.value?.length, JSON.stringify(list).includes("Aeroplan")]);
-  check("foxscope reads granted fields, derived, with no private field", { "prefs.shopping.size.top": "M", "prefs.food.allergies": ["peanuts"], "prefs.budget.perPurchase": "mid" }, (await scent(page, "foxscope", { type: "scent.read", fields, derive: true })).value);
+  check("foxscope lists the fields, and not the unknown one", [true, 28, false, false], [list.sent, list.value?.length, JSON.stringify(list).includes("Aeroplan"), JSON.stringify(list).includes("pets")]);
+  check("foxscope reads granted fields, derived, with no private or unknown field", { "prefs.shopping.size.top": "M", "prefs.food.allergies": ["peanuts"], "prefs.budget.perPurchase": "mid" }, (await scent(page, "foxscope", { type: "scent.read", fields, derive: true })).value);
   check("foxscope reads the exact budget without derive", { value: 8000, currency: "USD" }, (await scent(page, "foxscope", { type: "scent.read", fields, derive: false })).value?.["prefs.budget.perPurchase"]);
   const intruder = [await scent(page, "intruder", { type: "scent.list" }), await scent(page, "intruder", { type: "scent.read", fields, derive: false })];
   record.intruder = intruder;
