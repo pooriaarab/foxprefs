@@ -63,14 +63,15 @@ export interface Prefs {
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
 /**
- * The names a record holds that the schema does not know, perhaps from a
- * newer foxprefs. Their data is kept as it is and written back with the
- * record, but never checked, read or served. The objects have no prototype,
- * so a name like `__proto__` is only data.
+ * The values a record holds for names the schema does not know, perhaps
+ * from a newer foxprefs. They are kept as they are and written back with
+ * the record, but never checked, read or served. The object has no
+ * prototype, so a name like `__proto__` is only data. A sensitivity for an
+ * unknown name is dropped, not kept: a later schema could add the field,
+ * and a kept `public` would then override its `private` default.
  */
 export interface Kept {
   values: Record<string, unknown>;
-  sensitivity: Record<string, unknown>;
 }
 
 /** A checked record: the known fields in `state`, the unknown ones in `kept`. */
@@ -79,7 +80,7 @@ export interface Checked {
   kept: Kept;
 }
 
-/** Check a stored or imported record, field by field. Unknown names are kept apart. */
+/** Check a stored or imported record, field by field. Unknown values are kept apart. */
 export function checkState(schema: Schema, raw: unknown, code: "bad-store" | "bad-import"): Checked {
   const fail = (why: string): never => {
     throw new FoxprefsError(code, `${code === "bad-store" ? "The stored preferences are" : "The import is"} not valid: ${why}.`);
@@ -90,7 +91,7 @@ export function checkState(schema: Schema, raw: unknown, code: "bad-store" | "ba
   const byName = new Map(schema.map((f) => [f.name, f]));
   const values: Record<string, unknown> = {};
   const sensitivity: Record<string, string> = {};
-  const kept: Kept = { values: Object.create(null), sensitivity: Object.create(null) };
+  const kept: Kept = { values: Object.create(null) };
   for (const [name, value] of Object.entries(raw.values)) {
     const field = byName.get(name);
     if (!field) {
@@ -104,10 +105,7 @@ export function checkState(schema: Schema, raw: unknown, code: "bad-store" | "ba
     }
   }
   for (const [name, s] of Object.entries(raw.sensitivity)) {
-    if (!byName.has(name)) {
-      kept.sensitivity[name] = s;
-      continue;
-    }
+    if (!byName.has(name)) continue;
     if (!SENSITIVITIES.includes(s as Sensitivity)) fail(`${name}: the sensitivity ${JSON.stringify(s)} is not public, ask or private`);
     sensitivity[name] = s as string;
   }
@@ -119,7 +117,6 @@ export function checkState(schema: Schema, raw: unknown, code: "bad-store" | "ba
 const withKept = ({ state, kept }: Checked): PrefsState => ({
   ...state,
   values: { ...kept.values, ...state.values },
-  sensitivity: { ...(kept.sensitivity as Record<string, string>), ...state.sensitivity },
 });
 
 /** A copy of JSON data, so callers cannot change what is stored. */
@@ -158,7 +155,7 @@ export function createPrefs(options: PrefsOptions): Prefs {
   const read = async (): Promise<Checked> => {
     const raw = await store.read();
     if (raw !== undefined) return checkState(schema, raw, "bad-store");
-    return { state: { format: FORMAT, values: {}, sensitivity: {}, updatedAt: new Date(0).toISOString() }, kept: { values: {}, sensitivity: {} } };
+    return { state: { format: FORMAT, values: {}, sensitivity: {}, updatedAt: new Date(0).toISOString() }, kept: { values: {} } };
   };
   const load = async (): Promise<PrefsState> => (await read()).state;
   const change = (fn: (state: PrefsState) => boolean) =>
@@ -210,7 +207,7 @@ export function createPrefs(options: PrefsOptions): Prefs {
     unknownFields: () =>
       serial(async () => {
         const { kept } = await read();
-        return [...new Set([...Object.keys(kept.values), ...Object.keys(kept.sensitivity)])];
+        return Object.keys(kept.values);
       }),
     export: () => serial(async () => copy(withKept(await read()))),
     import: async (data) => {

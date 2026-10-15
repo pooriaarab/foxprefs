@@ -35,6 +35,7 @@ never resets a store that it cannot read.
 | P5 | A sensitivity is not `public`, `ask` or `private` | `bad-value` | tests/prefs.test.ts |
 | P6 | `unset` on a field that has no value | No error, no write | tests/prefs.test.ts |
 | P7 | The store holds a field the schema does not know, for example from a newer foxprefs | The rest of the store works. The field stays in the file as it is and goes into exports, but no agent surface serves it. The settings page shows it as "unknown field (kept)" | tests/prefs.test.ts, E2E |
+| P8 | The store or an import holds a sensitivity for a field the schema does not know, and a later schema adds that field | The sensitivity is dropped on load and import, so the field starts at its schema default. A kept `public` could otherwise override a `private` default | tests/prefs.test.ts |
 
 ## Export and import (`foxprefs/v1`)
 
@@ -43,9 +44,9 @@ never resets a store that it cannot read.
 | X1 | The import is not JSON, or has another format tag (`foxprefs/v2`, none) | `bad-import`; nothing changes | tests/prefs.test.ts |
 | X2 | The import is huge (over 256 KB) | `too-large` before `JSON.parse` | tests/prefs.test.ts |
 | X3 | One value in the import is bad | `bad-import` names the field; nothing changes (no half import) | tests/prefs.test.ts |
-| X4 | The import holds `__proto__` or `constructor` keys | They are kept as unknown fields, as plain data; no prototype changes | tests/prefs.test.ts |
+| X4 | The import holds `__proto__` or `constructor` keys | Values are kept as unknown fields, as plain data, and sensitivities are dropped as in P8; no prototype changes | tests/prefs.test.ts |
 | X5 | An export followed by an import changes a value | The round trip is exact | tests/prefs.test.ts |
-| X6 | The import names a field the schema does not know | It is kept as in P7, so an export from a newer foxprefs loses nothing | tests/prefs.test.ts |
+| X6 | The import names a field the schema does not know | Its value is kept as in P7, so an export from a newer foxprefs keeps its values. Its sensitivity is dropped as in P8 | tests/prefs.test.ts |
 
 ## What an agent gets
 
