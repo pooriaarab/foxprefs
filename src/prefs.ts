@@ -2,6 +2,7 @@
 // This is the owner's API, so get() returns private fields too. The agent
 // surfaces (prompt, SCENT, MCP) filter by sensitivity.
 import { FoxprefsError } from "./errors.js";
+import { toHcp, toPrompt, toRules, type HcpExport, type PrefsRules } from "./outputs.js";
 import { DEFAULT_SCHEMA, SENSITIVITIES, groupOf, type FieldType, type PrefField, type Schema, type Sensitivity } from "./schema.js";
 import type { PrefStore, PrefsState } from "./store.js";
 import { formatValue, parseValue, validateValue } from "./values.js";
@@ -49,6 +50,12 @@ export interface Prefs {
   export(): Promise<PrefsState>;
   /** Replace every value with the ones in a `foxprefs/v1` record. All or nothing. */
   import(data: string | unknown): Promise<void>;
+  /** Plain text for an agent's system prompt, with public fields only. */
+  toPrompt(fields?: string[]): Promise<string>;
+  /** The hard limits as foxgate user rules, a pay grant cap and a per-purchase cap. */
+  toRules(): Promise<PrefsRules>;
+  /** A plain-language export in the spirit of the Human Context Protocol. No private values. */
+  toHcp(): Promise<HcpExport>;
 }
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -177,6 +184,9 @@ export function createPrefs(options: PrefsOptions): Prefs {
       const next = checkState(schema, raw, "bad-import");
       return serial(() => store.write({ ...next, updatedAt: new Date(now()).toISOString() }));
     },
+    toPrompt: (fields) => serial(async () => toPrompt(schema, await load(), fields)),
+    toRules: () => serial(async () => toRules(await load(), now())),
+    toHcp: () => serial(async () => toHcp(schema, await load(), now())),
   };
   return Object.freeze(prefs);
 }
