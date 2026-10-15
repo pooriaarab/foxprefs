@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>foxprefs settings</title><link rel="stylesheet" href="style.css"></head>
+<body class="settings">
+  <header><img class="mark" src="icons/icon-48.png" alt="" width="22" height="22"><h1>foxprefs settings</h1></header>
+  <p class="note">Your preferences stay in this browser. Each field has a level that says who can read it.</p>
+  <p class="legend-key"><span><b class="public">Public</b>: any agent you give the text to</span><span><b class="ask">Ask</b>: only after you approve it in foxscope</span><span><b>Private</b>: never leaves this browser</span></p>
+  <div class="bar">
+    <button id="copy" class="primary">Copy for an agent</button>
+    <button id="export">Export</button>
+    <button id="import">Import</button>
+    <input id="import-file" type="file" accept="application/json,.json" hidden>
+    <span id="status" class="status" role="status"></span>
+  </div>
+  <pre id="agent-text" hidden></pre>
+  <form id="form" novalidate></form>
+  <script src="settings.js"></script>
+</body>
+</html>
