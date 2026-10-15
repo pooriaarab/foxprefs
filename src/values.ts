@@ -7,12 +7,13 @@ import { currencyDigits, type Money, type PrefField } from "./schema.js";
 export const MAX_TEXT = 120;
 export const MAX_ITEM = 100;
 export const MAX_ITEMS = 50;
-// Control characters, the line and paragraph separators, the bidi controls
-// (U+202A-202E, U+2066-2069) and the zero-width characters (U+200B-200D,
-// U+FEFF). A newline could start a new instruction line in an agent prompt,
-// and an invisible character makes a value read differently than it is.
-// oxlint-disable-next-line no-control-regex -- matching control characters is the point
-const CONTROL = /[\u0000-\u001f\u007f-\u009f\u200b-\u200d\u2028-\u202e\u2066-\u2069\ufeff]/;
+// Control characters (\p{Cc}), the line and paragraph separators, every
+// format character (\p{Cf}: bidi marks and controls, zero-width characters,
+// the soft hyphen, the word joiner) and the whole tag block U+E0000-E007F.
+// A newline could start a new instruction line in an agent prompt, and an
+// invisible character makes a value read differently than it is. Tag
+// characters are invisible, yet a model reads them as ASCII text.
+const CONTROL = /[\p{Cc}\p{Cf}\u2028\u2029\u{e0000}-\u{e007f}]/u;
 
 const bad = (field: PrefField, why: string): never => {
   throw new FoxprefsError("bad-value", `${field.name}: ${why}.`);
