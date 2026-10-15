@@ -135,7 +135,7 @@ The prefs object:
 | `export()` / `import(json)` | The whole record in the `foxprefs/v1` format. An import is checked whole first; a bad one changes nothing. |
 | `toPrompt(fields?)` | Plain text for a system prompt. Public fields only. |
 | `toRules()` | `{ maxPerPurchase, payGrant, userRules, neverShare }` in foxgate formats. |
-| `toHcp()` | An export in the spirit of HCP: context, per-field `Allow`/`Ask`/`Never`, and sentences. No private values. |
+| `toHcp()` | An export in the spirit of HCP: context, per-field `Allow`/`Ask`/`Never`, and sentences. Public values only. |
 
 Money is `{ value, currency }` in whole minor units (cents for USD), the same as foxgate.
 

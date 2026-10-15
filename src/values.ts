@@ -7,10 +7,12 @@ import { currencyDigits, type Money, type PrefField } from "./schema.js";
 export const MAX_TEXT = 120;
 export const MAX_ITEM = 100;
 export const MAX_ITEMS = 50;
-// Control characters, and the line and paragraph separators. A newline in a
-// value could start a new instruction line in an agent prompt.
+// Control characters, the line and paragraph separators, the bidi controls
+// (U+202A-202E, U+2066-2069) and the zero-width characters (U+200B-200D,
+// U+FEFF). A newline could start a new instruction line in an agent prompt,
+// and an invisible character makes a value read differently than it is.
 // oxlint-disable-next-line no-control-regex -- matching control characters is the point
-const CONTROL = /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/;
+const CONTROL = /[\u0000-\u001f\u007f-\u009f\u200b-\u200d\u2028-\u202e\u2066-\u2069\ufeff]/;
 
 const bad = (field: PrefField, why: string): never => {
   throw new FoxprefsError("bad-value", `${field.name}: ${why}.`);
@@ -21,7 +23,7 @@ function text(field: PrefField, value: unknown, max: number, what: string): stri
   const s = (value as string).trim();
   if (!s) bad(field, `${what} is empty`);
   if (s.length > max) bad(field, `${what} has more than ${max} characters`);
-  if (CONTROL.test(s)) bad(field, `${what} must be one line with no control characters`);
+  if (CONTROL.test(s)) bad(field, `${what} must be one line with no control or invisible characters`);
   return s;
 }
 
