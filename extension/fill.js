@@ -14,10 +14,25 @@ const kindOf = (el) => {
   if (/bottom|waist|pant|trouser|jean|inseam|short/.test(d)) return "bottom";
   return "top";
 };
-// A hidden or zero-size select is not one the user can see, so it is not filled.
+// A select the user cannot see is not filled: hidden, zero-size, opacity 0
+// (on it or a parent), off the page, or cut away by clip-path or clip on it
+// or a parent. A page has no reason to clip a real size control, so any
+// clip-path or clip counts as hidden; the user can still pick the size.
+const clipped = (el) => {
+  for (let node = el; node instanceof Element; node = node.parentElement) {
+    const style = getComputedStyle(node);
+    if (style.clipPath !== "none" || style.clip !== "auto") return true;
+  }
+  return false;
+};
 const visible = (el) => {
+  if (!el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return false;
   const box = el.getBoundingClientRect();
-  return box.width > 0 && box.height > 0 && getComputedStyle(el).visibility !== "hidden";
+  const page = document.documentElement;
+  const left = box.left + scrollX;
+  const top = box.top + scrollY;
+  const onPage = left + box.width > 0 && top + box.height > 0 && left < page.scrollWidth && top < page.scrollHeight;
+  return box.width > 0 && box.height > 0 && onPage && !clipped(el);
 };
 const wanted = (size) => new Set([norm(size), WORDS[size] ? norm(WORDS[size]) : ""].filter(Boolean));
 
@@ -25,14 +40,16 @@ if (!window.foxprefsFill) {
   window.foxprefsFill = true;
   browser.runtime.onMessage.addListener((message) => {
     if (message?.type !== "foxprefs:fill") return undefined;
-    const filled = [];
-    const missed = [];
-    const done = new Set();
+    // The first visible select of each kind is the one to fill.
+    const targets = new Map();
     for (const el of document.querySelectorAll("select")) {
       const kind = kindOf(el);
-      const size = kind && message.sizes[kind];
-      if (!size || done.has(kind) || !visible(el)) continue;
-      const want = wanted(size);
+      if (kind && message.sizes[kind] && !targets.has(kind) && visible(el)) targets.set(kind, el);
+    }
+    const filled = [];
+    const missed = [];
+    for (const [kind, el] of targets) {
+      const want = wanted(message.sizes[kind]);
       const option = [...el.options].find((o) => want.has(norm(o.value)) || want.has(norm(o.textContent)));
       if (!option) {
         missed.push(kind);
@@ -42,7 +59,6 @@ if (!window.foxprefsFill) {
       el.dispatchEvent(new Event("input", { bubbles: true }));
       el.dispatchEvent(new Event("change", { bubbles: true }));
       filled.push({ kind, value: option.textContent.trim() });
-      done.add(kind);
     }
     return Promise.resolve({ filled, missed });
   });

@@ -10,6 +10,11 @@
     <p>48.00 USD</p>
     <select id="size-hidden" name="size" hidden><option value="">Choose</option><option value="m">Medium</option></select>
     <select id="size-zero" name="size" style="width: 0; height: 0; padding: 0; border: 0"><option value="">Choose</option><option value="m">Medium</option></select>
+    <select id="size-opacity" name="size" style="opacity: 0"><option value="">Choose</option><option value="m">Medium</option></select>
+    <div style="opacity: 0"><select id="size-faded" name="size"><option value="">Choose</option><option value="m">Medium</option></select></div>
+    <select id="size-offscreen" name="size" style="position: absolute; left: -9999px"><option value="">Choose</option><option value="m">Medium</option></select>
+    <select id="size-clip-path" name="size" style="clip-path: inset(50%)"><option value="">Choose</option><option value="m">Medium</option></select>
+    <select id="size-clip" name="size" style="position: absolute; clip: rect(0 0 0 0)"><option value="">Choose</option><option value="m">Medium</option></select>
     <label>Size
       <select id="size" name="size"><option value="">Choose</option><option value="s">Small</option><option value="m">Medium</option><option value="l">Large</option></select>
     </label>
