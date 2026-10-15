@@ -8,3 +8,5 @@ export type { FieldInfo, Prefs, PrefsOptions } from "./prefs.js";
 export { memoryStore, storageAreaStore } from "./store.js";
 export type { PrefStore, PrefsState, StorageAreaLike } from "./store.js";
 export type { GateRule, HcpExport, PrefsRules } from "./outputs.js";
+export { FOXSCOPE_ID, MAX_READ_FIELDS, NAMESPACE, answerScent, prefsResolver } from "./scent.js";
+export type { ScentField, ScentRequest, ScentResolver, ScentResponse, SenderLike } from "./scent.js";
