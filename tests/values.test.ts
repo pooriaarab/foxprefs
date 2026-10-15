@@ -1,6 +1,12 @@
 // S1-S9 in docs/failure-modes.md: bad values are refused loudly, by name.
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SCHEMA, FoxprefsError, defineSchema, formatValue, parseValue, validateValue, type PrefField } from "../src/index.js";
+import { DEFAULT_SCHEMA, FoxprefsError, createPrefs, defineSchema, formatValue, memoryStore, parseValue, validateValue, type PrefField } from "../src/index.js";
+
+// Every variation selector: U+FE00-FE0F and U+E0100-E01EF.
+const SELECTORS = [
+  ...Array.from({ length: 16 }, (_, i) => String.fromCodePoint(0xfe00 + i)),
+  ...Array.from({ length: 240 }, (_, i) => String.fromCodePoint(0xe0100 + i)),
+];
 
 const field = (name: string): PrefField => {
   const f = DEFAULT_SCHEMA.find((x) => x.name === name);
@@ -37,6 +43,32 @@ describe("validateValue", () => {
       expect(code(() => validateValue(field("identity.pronouns"), `she${ch}her`))).toMatch(/no control or invisible characters/);
     }
     expect(validateValue(field("identity.pronouns"), "elle/él")).toBe("elle/él");
+  });
+
+  it("S4 refuses variation selectors and blank-looking fillers", () => {
+    const blank = [...SELECTORS, "\u3164", "\uffa0", "\u2800", "\u034f", "\u180b", "\u180c", "\u180d", "\u180e", "\u180f"];
+    for (const ch of blank) {
+      expect(code(() => validateValue(field("identity.pronouns"), `she${ch}her`))).toMatch(/no control or invisible characters/);
+      expect(code(() => validateValue(field("food.dislikes"), ["olives", `a${ch}`]))).toMatch(/no control or invisible characters/);
+    }
+  });
+
+  it("S4 toPrompt can never carry a variation selector", async () => {
+    const prefs = createPrefs({ store: memoryStore() });
+    const texts = DEFAULT_SCHEMA.filter((f) => f.type === "string" || f.type === "list");
+    for (const f of texts) await prefs.setSensitivity(f.name, "public");
+    for (const ch of SELECTORS) {
+      for (const f of texts) {
+        const value = f.type === "list" ? [`a${ch}`] : `a${ch}`;
+        expect(code(() => validateValue(f, value))).toMatch(/^bad-value/);
+        await prefs.set(f.name, value).catch(() => undefined);
+        await prefs.setText(f.name, `a${ch}`).catch(() => undefined);
+        await prefs.import({ format: "foxprefs/v1", values: { [f.name]: value }, sensitivity: { [f.name]: "public" } }).catch(() => undefined);
+      }
+    }
+    expect(await prefs.toPrompt()).not.toMatch(/\p{Variation_Selector}/u);
+    const stored = memoryStore({ format: "foxprefs/v1", values: { "identity.pronouns": "she\ufe0fher" }, sensitivity: {}, updatedAt: "2026-10-01T00:00:00.000Z" });
+    expect(await createPrefs({ store: stored }).toPrompt().catch((e: FoxprefsError) => e.code)).toBe("bad-store");
   });
 
   it("S5 refuses huge strings and lists", () => {
