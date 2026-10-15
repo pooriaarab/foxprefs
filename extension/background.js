@@ -10,6 +10,7 @@ const field = async (name) => (await prefs.all()).find((f) => f.name === name);
 /** The messages that the settings page and the popup send. */
 export const handlers = {
   "prefs:all": () => prefs.all(),
+  "prefs:unknown": () => prefs.unknownFields(),
   "prefs:set": async ({ field: name, text }) => {
     if (typeof text !== "string") throw new FoxprefsError("bad-value", `${name}: the value must be text.`);
     if (text.trim() === "") await prefs.unset(name);
