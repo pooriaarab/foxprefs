@@ -8,11 +8,16 @@
   <body>
     <h1>Linen shirt</h1>
     <p>48.00 USD</p>
+    <select id="size-hidden" name="size" hidden><option value="">Choose</option><option value="m">Medium</option></select>
+    <select id="size-zero" name="size" style="width: 0; height: 0; padding: 0; border: 0"><option value="">Choose</option><option value="m">Medium</option></select>
     <label>Size
       <select id="size" name="size"><option value="">Choose</option><option value="s">Small</option><option value="m">Medium</option><option value="l">Large</option></select>
     </label>
     <label>Shoe size
       <select id="shoe" name="shoe-size"><option value="">Choose</option><option>8</option><option>9</option><option>10</option></select>
+    </label>
+    <label>Size of a second shirt (a gift)
+      <select id="size-2" name="gift-size"><option value="">Choose</option><option value="m">Medium</option><option value="l">Large</option></select>
     </label>
     <label>Color
       <select id="color" name="color"><option value="">Choose</option><option>Sand</option><option>Navy</option></select>
