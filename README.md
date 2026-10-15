@@ -170,6 +170,7 @@ for (const rule of rules.userRules) await host.addRule(rule);
 - `userRules` deny `read` and `submit` on `rules.sites.block`, and ask for `submit` on `rules.sites.ask`.
   foxgate needs registrable domains here (`example.com`, not `shop.example.com`).
 - foxgate has no per-action cap, so check `maxPerPurchase` in your executor.
+- A field that you made private is left out of the rules.
 
 ### CLI
 
