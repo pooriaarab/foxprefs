@@ -226,6 +226,12 @@ pnpm e2e          # local Firefox, or FOXKIT_BROWSER=ichabod with ICHABOD_API_KE
 - "Fill my size" reads only `<select>` controls with "size" in their name, id or label.
   Buttons, radio groups and custom widgets are not filled.
 - An export file has every value, also the private ones. Keep it safe.
+- "Private" is about agents, not about this computer. The CLI (`get`, `list`, `export`)
+  prints private values, and `~/.foxprefs/prefs.json` holds them in plain JSON. Anyone
+  with shell access as your user can read them.
+- In the extension, only the add-on ID `foxscope@pooriaarab` can read preferences. That
+  ID is listed on AMO, so AMO does not sign another add-on with it. foxprefs trusts the
+  ID and nothing else.
 - No sync between devices. The extension and the CLI use separate stores; move data with export and import.
 
 ## Part of the fox primitives
