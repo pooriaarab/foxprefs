@@ -16,7 +16,7 @@ never resets a store that it cannot read.
 | S1 | A value has the wrong type, for example a number for an enum field or `"yes"` for a boolean | `set` throws `bad-value` and names the field and the type it wants; the store does not change | tests/values.test.ts |
 | S2 | An enum value is not one of the options (`size.top: "XXXL"`) | `bad-value` lists the options | tests/values.test.ts |
 | S3 | A field name is unknown or misspelled (`shoping.size.top`) | `unknown-field`; no new key is stored | tests/values.test.ts |
-| S4 | A string holds a newline or another control character, which could start a new line of instructions in an agent prompt | `bad-value` | tests/values.test.ts |
+| S4 | A string holds a newline or another control character, which could start a new line of instructions in an agent prompt, or an invisible character (a bidi override, a zero-width space) that makes it read differently | `bad-value` | tests/values.test.ts |
 | S5 | A string or list is huge (a 1 MB string, 10 000 list items) | `bad-value` above the field limit (120 characters, 50 items of 100 characters) | tests/values.test.ts |
 | S6 | Money has a fraction of a minor unit (`19.999 USD`), a negative amount, a lowercase or unknown currency | `bad-value`; money is a whole number of minor units and an ISO 4217 code | tests/values.test.ts |
 | S7 | Text input is ambiguous (`"200"` for money with no currency, `"maybe"` for a boolean) | `parseValue` throws `bad-value`; it never picks a default currency or a default answer | tests/values.test.ts |
@@ -53,7 +53,7 @@ never resets a store that it cannot read.
 | O2 | `toPrompt` names an unknown field | `unknown-field` | tests/outputs.test.ts |
 | O3 | `toRules` makes a rule that foxgate refuses or reads in another way | The rules go into a real foxgate and it denies a purchase over the cap and an action on a blocked site | tests/outputs.test.ts |
 | O4 | A monthly cap uses another currency than the purchase | foxgate denies it (`currency`); foxprefs does not convert | tests/outputs.test.ts |
-| O5 | `toHcp` carries a private value | Private fields appear with `read: "Never"` and no value | tests/outputs.test.ts |
+| O5 | `toHcp` carries a private or an ask value | Only public values are in it. Private fields appear with `read: "Never"`, ask fields with `read: "Ask"`, both with no value | tests/outputs.test.ts |
 | O6 | `toRules` puts a private field (a private monthly budget, a private never-share list) in the rules | Private fields are left out of the rules too | tests/outputs.test.ts |
 | R1 | The SCENT resolver returns a private field, also with `derive: true` | It is left out | tests/scent.test.ts |
 | R2 | `derive: true` returns the exact budget | It returns the band (`low`, `mid` or `high`) | tests/scent.test.ts |
@@ -68,8 +68,8 @@ never resets a store that it cannot read.
 | # | Failure mode | Wanted behaviour | Test |
 |---|---|---|---|
 | N1 | `FOXPREFS_HOME` is not set | The store is `~/.foxprefs/prefs.json` | tests/node.test.ts |
-| N2 | A crash during a write leaves half a file | Writes go to a temp file and then `rename`, so the old file stays whole | tests/node.test.ts |
-| N3 | Other users on the computer read the file | The directory is `0700` and the file `0600` | tests/node.test.ts |
+| N2 | A crash during a write leaves half a file, or a failed rename leaves a temp file | Writes go to a temp file and then `rename`, so the old file stays whole. A failed rename removes the temp file | tests/node.test.ts |
+| N3 | Other users on the computer read the file, or foxprefs changes the mode of a directory it did not make | A directory foxprefs makes is `0700`; an existing one keeps its mode. The file is `0600` | tests/node.test.ts |
 | N4 | Two CLI processes write at the same time | The last write wins. Documented limit, no lock | — |
 | C1 | A CLI command or flag is unknown, or an argument is missing | Exit 2 with the usage | tests/cli.test.ts |
 | C2 | A value is bad | Exit 1 with the field error; nothing changes | tests/cli.test.ts |

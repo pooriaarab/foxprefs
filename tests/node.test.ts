@@ -1,5 +1,5 @@
 // N1-N3 and P1 (file) in docs/failure-modes.md.
-import { mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -32,6 +32,21 @@ describe("foxprefs/node", () => {
     await openPrefs({ env: { FOXPREFS_HOME: dir } }).set("food.diet", "vegan");
     expect(statSync(dir).mode & 0o777).toBe(0o700);
     expect(statSync(join(dir, "prefs.json")).mode & 0o777).toBe(0o600);
+  });
+
+  it("N3 never changes the mode of a directory that exists", async () => {
+    const dir = temp();
+    chmodSync(dir, 0o755);
+    await openPrefs({ env: { FOXPREFS_HOME: dir } }).set("food.diet", "vegan");
+    expect(statSync(dir).mode & 0o777).toBe(0o755);
+  });
+
+  it("N2 a failed rename removes the temp file", async () => {
+    const dir = temp();
+    mkdirSync(join(dir, "prefs.json"));
+    writeFileSync(join(dir, "prefs.json", "x"), "x");
+    await expect(fileStore(join(dir, "prefs.json")).write({ format: "foxprefs/v1", values: {}, sensitivity: {}, updatedAt: "" })).rejects.toThrow();
+    expect(readdirSync(dir)).toEqual(["prefs.json"]);
   });
 
   it("P1 a file that is not JSON fails loudly and is not changed", async () => {
