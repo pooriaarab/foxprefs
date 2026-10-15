@@ -92,9 +92,11 @@ the tests, then the code. Commit in that order.
 ## Release
 
 `main` is staging and `release` is production. A push to `release` runs
-`.github/workflows/release.yml`. It refuses a version that has a tag, runs
-`pnpm ci:local`, publishes to npm with the `NPM_TOKEN` secret, then tags
-`v<version>` and creates a GitHub release.
+`.github/workflows/release.yml`. It refuses a version that has a tag and
+runs the Firefox E2E on Ichabod (secret `ICHABOD_API_KEY`). Only then does
+it run `pnpm ci:local` and publish to npm with the `NPM_TOKEN` secret; that
+job alone holds `id-token: write`. Then it tags `v<version>` and creates a
+GitHub release.
 
 After the npm publish, it submits `dist-ext/` to AMO as a listed add-on,
 with the listing in `extension/amo-metadata.json`. AMO reviews the version
