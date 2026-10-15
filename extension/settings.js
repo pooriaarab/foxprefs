@@ -69,9 +69,17 @@ function row(f) {
   return el("div", { className: "field" }, [el("label", { htmlFor: input.id, textContent: f.label }), input, sens, error]);
 }
 
+/** A field in the store that this version does not know. It stays in the store, and no agent sees it. */
+function keptRow(name) {
+  const node = el("div", { className: "field" }, [el("label", { textContent: name }), el("span", { className: "kept", textContent: "unknown field (kept)" })]);
+  node.dataset.unknown = name;
+  return node;
+}
+
 async function render() {
-  const fields = await ask("prefs:all");
+  const [fields, unknown] = await Promise.all([ask("prefs:all"), ask("prefs:unknown")]);
   const sets = Object.keys(GROUPS).map((g) => el("fieldset", {}, [el("legend", { textContent: GROUPS[g] }), ...fields.filter((f) => f.group === g).map(row)]));
+  if (unknown.length) sets.push(el("fieldset", {}, [el("legend", { textContent: "Fields this version does not know" }), ...unknown.map(keptRow)]));
   $("form").replaceChildren(...sets);
 }
 
