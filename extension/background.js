@@ -51,6 +51,9 @@ browser.runtime.onMessage.addListener((message, sender) => {
     );
 });
 
-// Synchronous: answerScent returns undefined for any sender but foxscope,
-// so that sender gets no reply, the same as when foxprefs is not installed.
-browser.runtime.onMessageExternal.addListener((message, sender) => answerScent(resolver, sender, message));
+// answerScent gives undefined for any sender but foxscope. Firefox would then
+// resolve the sender's call with undefined, which tells it that foxprefs is
+// installed. So reject with the error Firefox gives when no extension has
+// that id: to another extension, foxprefs looks absent (the E2E compares both).
+const ABSENT = "Could not establish connection. Receiving end does not exist.";
+browser.runtime.onMessageExternal.addListener((message, sender) => answerScent(resolver, sender, message) ?? Promise.reject(new Error(ABSENT)));
