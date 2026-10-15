@@ -230,8 +230,9 @@ pnpm e2e          # local Firefox, or FOXKIT_BROWSER=ichabod with ICHABOD_API_KE
 - "Private" is about agents, not about this computer. The CLI (`get`, `list`, `export`)
   prints private values, and `~/.foxprefs/prefs.json` holds them in plain JSON. Anyone
   with shell access as your user can read them.
-- In the extension, foxprefs answers only the add-on ID `foxscope@pooriaarab`, an ID that
-  the foxscope add-on holds on AMO, and it checks nothing else about the sender.
+- In the extension, foxprefs answers only the add-on ID `foxscope@pooriaarab`, and it
+  checks nothing else about the sender. That is safe only once the foxscope add-on holds
+  this ID on AMO, so foxscope must be listed on AMO before foxprefs is released.
 - No sync between devices. The extension and the CLI use separate stores; move data with export and import.
 
 ## Part of the fox primitives
